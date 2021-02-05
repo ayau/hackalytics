@@ -42,11 +42,22 @@ def gen_frames():
     start_time = 0
     fps = "0"
 
+    use_media_pipe = True
+    if use_media_pipe:
+        model.open_media_pipe()
     while True:
         start_time = time.time()
         success, frame = camera.read()  # read the camera frame
         if not success:
             break
+        elif use_media_pipe:
+            frame = model.predict_with_mediapipe(frame)
+            fps = 'fps:{}'.format( int(1/(time.time()-start_time)))
+            frame = cv2.putText(frame, fps , org, font, fontScale, color, thickness, cv2.LINE_AA)
+            ret, buffer = cv2.imencode('.jpg', frame)
+            frame = buffer.tobytes()
+            yield (b'--frame\r\n'
+                   b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')  # concat frame one by one and show result
         else:
             #frame = model.predict(frame)
             frame, pred, mpii_edges = model.predict(frame)
@@ -58,6 +69,7 @@ def gen_frames():
             yield (b'--frame\r\n'
                    b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')  # concat frame one by one and show result
 
+    model.close_media_pipe()
     camera.release()
     cv2.destroyAllWindows()
 
