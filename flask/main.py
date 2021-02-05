@@ -40,6 +40,7 @@ def gen_frames():
     color = (255, 0, 0) 
     thickness = 2
     start_time = 0
+    fps = "0"
 
     while True:
         start_time = time.time()
@@ -49,7 +50,8 @@ def gen_frames():
         else:
             #frame = model.predict(frame)
             frame, pred, mpii_edges = model.predict(frame)
-            frame = cv2.putText(frame, 'fps:{}'.format( int(1/(time.time()-start_time)) ), org, font, fontScale, color, thickness, cv2.LINE_AA) 
+            fps = 'fps:{}'.format( int(1/(time.time()-start_time)) )
+            frame = cv2.putText(frame, fps , org, font, fontScale, color, thickness, cv2.LINE_AA) 
             frame = show_2d(frame, pred, color, mpii_edges)
             ret, buffer = cv2.imencode('.jpg', frame)
             frame = buffer.tobytes()
