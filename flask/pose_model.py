@@ -11,7 +11,7 @@ from utils.debugger import show_2d, mpii_edges
 
 import mediapipe as mp
 mp_drawing = mp.solutions.drawing_utils
-mp_holistic = mp.solutions.holistic
+mp_pose = mp.solutions.pose
 
 
 mean = np.array([0.485, 0.456, 0.406], np.float32).reshape(1, 1, 3)
@@ -34,10 +34,10 @@ class PoseModel(object):
         self.model = model.to(self.opt.device)
 
     def open_media_pipe(self):
-        self.holistic = mp_holistic.Holistic(min_detection_confidence=0.5, min_tracking_confidence=0.5)
+        self.pose = mp_pose.Pose(min_detection_confidence=0.5, min_tracking_confidence=0.5)
 
     def close_media_pipe(self):
-        self.holistic.close()
+        self.pose.close()
 
     def predict(self, image):
         s = max(image.shape[0], image.shape[1]) * 1.0
@@ -74,19 +74,13 @@ class PoseModel(object):
         # To improve performance, optionally mark the image as not writeable to
         # pass by reference.
         image.flags.writeable = False
-        results = self.holistic.process(image)
+        results = self.pose.process(image)
 
         # Draw landmark annotation on the image.
         image.flags.writeable = True
         image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
         mp_drawing.draw_landmarks(
-            image, results.face_landmarks, mp_holistic.FACE_CONNECTIONS)
-        mp_drawing.draw_landmarks(
-            image, results.left_hand_landmarks, mp_holistic.HAND_CONNECTIONS)
-        mp_drawing.draw_landmarks(
-            image, results.right_hand_landmarks, mp_holistic.HAND_CONNECTIONS)
-        mp_drawing.draw_landmarks(
-            image, results.pose_landmarks, mp_holistic.POSE_CONNECTIONS)
+            image, results.pose_landmarks, mp_pose.POSE_CONNECTIONS)
 
         return image
 
