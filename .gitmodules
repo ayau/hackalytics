@@ -1,0 +1,3 @@
+[submodule "flask/pytorch-pose-hg-3d"]
+	path = flask/pytorch-pose-hg-3d
+	url = https://github.com/xingyizhou/pytorch-pose-hg-3d.git

@@ -1,0 +1,4 @@
+flask/venv/*
+.DS_Store
+flask/__pycache__/
+flask/models/
