@@ -17,7 +17,10 @@ class PoseModel(object):
 
     def __init__(self):
         # Remove --gpus -1 to use gpu
-        self.opt = opts().parse(['--load_model', 'models/fusion_3d_var.pth', '--gpus', '-1'])
+        if (torch.cuda.is_available()):
+            self.opt = opts().parse(['--load_model', 'models/fusion_3d_var.pth'])
+        else:
+            self.opt = opts().parse(['--load_model', 'models/fusion_3d_var.pth', '--gpus', '-1'])
 
         self.opt.heads['depth'] = self.opt.num_output
 
@@ -43,11 +46,12 @@ class PoseModel(object):
         out = self.model(inp)[-1]
         pred = get_preds(out['hm'].detach().cpu().numpy())[0]
         pred = transform_preds(pred, c, s, (self.opt.output_w, self.opt.output_h))
-        pred_3d = get_preds_3d(out['hm'].detach().cpu().numpy(),
-                               out['depth'].detach().cpu().numpy())[0]
+        # pred_3d = get_preds_3d(out['hm'].detach().cpu().numpy(), out['depth'].detach().cpu().numpy())[0]
 
         # Overlay points on top fo image
-        return show_2d(image, pred, (255, 0, 0), mpii_edges)
+        #return show_2d(image, pred, (255, 0, 0), mpii_edges)
+
+        return image, pred, mpii_edges
 
         # debugger = Debugger()
         # debugger.add_img(image)

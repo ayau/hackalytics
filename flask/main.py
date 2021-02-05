@@ -11,6 +11,8 @@ if lib_path not in sys.path:
 from flask import Flask, Response
 import cv2
 from pose_model import PoseModel
+from utils.debugger import show_2d, mpii_edges
+import time
 
 app = Flask(__name__, static_url_path="/static")
 
@@ -31,12 +33,24 @@ def gen_frames():
     # image = cv2.imread(image_name)
     # print(model.predict(image))
 
+
+    font = cv2.FONT_HERSHEY_SIMPLEX 
+    org = (50, 50) 
+    fontScale = 1
+    color = (255, 0, 0) 
+    thickness = 2
+    start_time = 0
+
     while True:
+        start_time = time.time()
         success, frame = camera.read()  # read the camera frame
         if not success:
             break
         else:
-            frame = model.predict(frame)
+            #frame = model.predict(frame)
+            frame, pred, mpii_edges = model.predict(frame)
+            frame = cv2.putText(frame, 'fps:{}'.format( int(1/(time.time()-start_time)) ), org, font, fontScale, color, thickness, cv2.LINE_AA) 
+            frame = show_2d(frame, pred, color, mpii_edges)
             ret, buffer = cv2.imencode('.jpg', frame)
             frame = buffer.tobytes()
             yield (b'--frame\r\n'
