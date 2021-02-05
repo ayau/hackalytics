@@ -19,15 +19,12 @@ class PoseModel(object):
         # Remove --gpus -1 to use gpu
         if (torch.cuda.is_available()):
             self.opt = opts().parse(['--load_model', 'models/fusion_3d_var.pth'])
-        else:
-            self.opt = opts().parse(['--load_model', 'models/fusion_3d_var.pth', '--gpus', '-1'])
-
-        self.opt.heads['depth'] = self.opt.num_output
-
-        if self.opt.gpus[0] >= 0:
             self.opt.device = torch.device('cuda:{}'.format(self.opt.gpus[0]))
         else:
+            self.opt = opts().parse(['--load_model', 'models/fusion_3d_var.pth', '--gpus', '-1'])
             self.opt.device = torch.device('cpu')
+
+        self.opt.heads['depth'] = self.opt.num_output
 
         model, _, _ = create_model(self.opt)
         self.model = model.to(self.opt.device)
