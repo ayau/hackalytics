@@ -10,3 +10,4 @@
 * source venv/bin/activate
 * export FLASK_APP=main.py
 * flask run
+* Navigate to http://localhost:5000/
