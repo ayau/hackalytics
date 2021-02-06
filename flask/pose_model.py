@@ -34,7 +34,7 @@ class PoseModel(object):
         self.model = model.to(self.opt.device)
 
     def open_media_pipe(self):
-        self.pose = mp_pose.Pose(min_detection_confidence=0.5, min_tracking_confidence=0.5)
+        self.pose = mp_pose.Pose(static_image_mode=True, min_detection_confidence=0.5)
 
     def close_media_pipe(self):
         self.pose.close()
@@ -83,5 +83,23 @@ class PoseModel(object):
             image, results.pose_landmarks, mp_pose.POSE_CONNECTIONS)
 
         return image
+
+    def process_video_into_frames_and_poses(self, video_path):
+        vidcap = cv2.VideoCapture(video_path)
+        success, image = vidcap.read()
+
+        frames_and_poses = []
+        while success:
+            image.flags.writeable = False
+            image = cv2.cvtColor(cv2.flip(image, 1), cv2.COLOR_BGR2RGB)
+            pose_output = self.pose.process(image)
+            image.flags.writeable = True
+            image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
+            frames_and_poses.append({'image': image, 'pose_results': pose_output})
+
+            print(pose_output.pose_landmarks)
+            success,image = vidcap.read()
+
+        vidcap.release()
 
 
