@@ -6,7 +6,7 @@ import time
 # python3 bg_subtract.py to run it
 
 # Settings
-video_name = '../sample_videos/jump1.mp4'
+video_name = '../sample_videos/jump5_small.mp4'
 only_display_largest_blob = False # only draw the largest blob to reduce noise
 remove_noise = True # remove small blobs and plug some small holes
 skip_frames = 1  # how many frames to process. setting to 3 will process one every 3 frames
