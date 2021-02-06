@@ -96,7 +96,7 @@ class PoseModel(object):
         #img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
         img = Image.fromarray(img)
         nc=21
-        net = models.segmentation.deeplabv3_resnet101(pretrained=1).eval()
+        net = models.segmentation.deeplabv3_resnet50(pretrained=1).eval()
         #if show_orig: plt.imshow(img); plt.axis('off'); plt.show()
         # Comment the Resize and CenterCrop for better inference results
         trf = T.Compose([T.Resize(640), 
@@ -133,7 +133,7 @@ class PoseModel(object):
             b[idx] = label_colors[l, 2]
             
         rgb = np.stack([r, g, b], axis=2)
-        print(rgb)
+        #print(rgb)
         img = Image.fromarray(rgb, 'RGB')
         return cv2.cvtColor(np.float32(rgb), cv2.COLOR_RGB2BGR)
 
