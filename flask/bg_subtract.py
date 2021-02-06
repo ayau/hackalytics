@@ -6,7 +6,7 @@ import time
 # python3 bg_subtract.py to run it
 
 # Settings
-video_name = '../sample_videos/jump5_small.mp4'
+video_name = '../sample_videos/jump3_small.mp4'
 only_display_largest_blob = False # only draw the largest blob to reduce noise
 remove_noise = True # remove small blobs and plug some small holes
 skip_frames = 1  # how many frames to process. setting to 3 will process one every 3 frames
@@ -15,7 +15,7 @@ use_cnt_model = False # Faster but less accurate
 # use person detection to help narrow down search space
 # To enable this, first download the yolov3.weights and yolov3.cfg from https://medium.com/@luanaebio/detecting-people-with-yolo-and-opencv-5c1f9bc6a810
 # and put those in flask/
-detect_person = False
+detect_person = False # ivan: i tried it with various sizes of the yolov model - didn't seem to improve much
 
 
 def run():
@@ -62,7 +62,7 @@ def run():
 
         # Apply a mask to only focus on the person
         # If we want to do this in prod we should make the bounds a bit larger for some more leeway
-        if detect_person:
+        if detect_person and bounds: #sometimes there were no bounds and this crashed
             [x, y, w, h] = bounds
             mask = np.zeros(frame.shape[:2], np.uint8)
             start_rect = (int(x), int(y))
@@ -86,8 +86,18 @@ def run():
 
         print(time.time() - start)
 
+        positions = np.nonzero(fgmask)
+
+        if(len(positions[0])>0):
+            top = positions[0].min()
+            bottom = positions[0].max()
+            left = positions[1].min()
+            right = positions[1].max()
+            fgmask = cv2.rectangle(cv2.cvtColor(fgmask, cv2.COLOR_GRAY2BGR)
+                , (left, top), (right, bottom), (0,255,0), 1)
+
         cv2.imshow('mask', fgmask) # show mask video
-        cv2.imshow('original', frame) # show original video
+        #cv2.imshow('original', frame) # show original video
 
         k = cv2.waitKey(30) & 0xff
         if k == 27:
@@ -102,7 +112,7 @@ def run():
 # channels = 1 in yolov3.cfg for grayscale. If not using grayscale, change this back to 3
 # read pre-trained model and config file
 if detect_person:
-    net = cv2.dnn.readNet('yolov3.weights', 'yolov3.cfg')
+    net = cv2.dnn.readNet('./models/yolov2-tiny.weights', './models/yolov2-tiny.cfg')
 
 def detectPersonBounds(image):
 
