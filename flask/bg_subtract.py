@@ -6,12 +6,13 @@ import time
 # python3 bg_subtract.py to run it
 
 # Settings
-video_name = '../sample_videos/jump5_small.mp4'
+video_name = '../sample_videos/jump3_small.mp4'
 only_display_largest_blob = False # only draw the largest blob to reduce noise
 remove_noise = True # remove small blobs and plug some small holes
 skip_frames = 1  # how many frames to process. setting to 3 will process one every 3 frames
 use_cnt_model = False # Faster but less accurate
 crop_height = 10 #the height of the crop up from feet
+
 
 # use person detection to help narrow down search space
 # To enable this, first download the yolov3.weights and yolov3.cfg from https://medium.com/@luanaebio/detecting-people-with-yolo-and-opencv-5c1f9bc6a810
@@ -48,10 +49,6 @@ def run(lowest_point=None, first_frame=None, last_frame=None, second_pass=False)
             if(last_frame):
                 if(frame_num > last_frame):
                     break
-
-
-        
-        
 
         # Uncomment if you want to skip some frames. Maybe we can use binary search to find the launch frame
 
@@ -134,8 +131,8 @@ def run(lowest_point=None, first_frame=None, last_frame=None, second_pass=False)
                 crop_fgmask = fgmask[lowest_point-crop_height:lowest_point, :]
                 if(crop_fgmask.size>0):
                     if( (lowest_point-bottom)< crop_height):
-                        # this can be done more precisely if the direction of the runner is known
-                        data.append([left, right, (abs(left-last_left)+abs(right-last_right))/2, last_left, last_right])
+                        # assume runner is coming from the right side (ccw running, filming from inside the track)
+                        data.append([left, abs(left-last_left), last_left])
                         last_left, last_right, last_bottom = (left, right, bottom)
                     cv2.imshow('cropped', crop_fgmask) # show mask video
 
@@ -156,8 +153,8 @@ def run(lowest_point=None, first_frame=None, last_frame=None, second_pass=False)
         data = np.array(data)
         print(data)
         jump = data[ np.argmax(data[:,2]) ] #find max delta between x values at bottom of slice
-        print("jump occurred between pixels {},{} and pixels {},{} with a distance of approx {} pixels".format(
-            jump[3], jump[4], jump[0], jump[1], jump[2]
+        print("jump occurred between pixels {} and  {} with a distance of approx {} pixels".format(
+            jump[2], jump[0], jump[1]
         ))
 
 
