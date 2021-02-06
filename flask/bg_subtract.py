@@ -120,11 +120,11 @@ def detectPersonBounds(image):
     outs = net.forward(output_layers)
 
     # Find Bounding Box
-    box = None  # TODO handle multiple people in the image (find the largest one)
     confidence_threshold = 0.1
     person_class_id = 0
     width = image.shape[1]
     height = image.shape[0]
+    max_box = None
     for out in outs:
         for detection in out:
             scores = detection[5:]
@@ -143,7 +143,10 @@ def detectPersonBounds(image):
                 # cv2.rectangle(image, (round(box[0]), round(box[1])), (round(box[0] + box[2]), round(box[1] + box[3])), (255, 0, 0), 2)
                 # cv2.putText(image, 'Person', (round(box[0]) - 10, round(box[1]) - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 0, 0), 2)
 
-    return box
+                if max_box is None or box[2] * box[3] > max_box[2] * max_box[3]:
+                    max_box = box
+
+    return max_box
 
 
 run()
