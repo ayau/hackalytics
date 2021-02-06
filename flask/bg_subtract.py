@@ -6,7 +6,7 @@ import time
 # python3 bg_subtract.py to run it
 
 # Settings
-video_name = '../sample_videos/jump5.mp4'
+video_name = '../sample_videos/jump1.mp4'
 only_display_largest_blob = False # only draw the largest blob to reduce noise
 remove_noise = True # remove small blobs and plug some small holes
 skip_frames = 1  # how many frames to process. setting to 3 will process one every 3 frames
@@ -24,7 +24,7 @@ def run():
     if use_cnt_model:
         fgbg = cv2.bgsegm.createBackgroundSubtractorCNT() # way faster but a bit noisier
     else:
-        fgbg = cv2.bgsegm.createBackgroundSubtractorMOG(backgroundRatio=0.95) # 95% of the image is the background
+        fgbg = cv2.bgsegm.createBackgroundSubtractorMOG()
 
     frame_num = 0
     while True:
@@ -43,6 +43,10 @@ def run():
 
         # Convert to gray scale for faster processing
         frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+
+        # applying blur reduced the noise and avoid overfitting on the background
+        frame = cv2.GaussianBlur(frame, (11, 11), 0) # must be an odd number
+        # frame = cv2.medianBlur(frame, 5)
 
         # Apply background subtraction
         fgmask = fgbg.apply(frame)
