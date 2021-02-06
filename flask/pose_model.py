@@ -6,12 +6,17 @@ from model import create_model
 # from utils.debugger import Debugger
 from utils.image import get_affine_transform, transform_preds
 from utils.eval import get_preds, get_preds_3d
-
+import matplotlib.pyplot as plt
+from PIL import Image
+from torchvision import models
 from utils.debugger import show_2d, mpii_edges
 
 import mediapipe as mp
 mp_drawing = mp.solutions.drawing_utils
 mp_pose = mp.solutions.pose
+
+import torchvision.transforms as T
+
 
 
 mean = np.array([0.485, 0.456, 0.406], np.float32).reshape(1, 1, 3)
@@ -21,7 +26,8 @@ class PoseModel(object):
 
     def __init__(self):
         # Remove --gpus -1 to use gpu
-        if (torch.cuda.is_available()):
+        #if (torch.cuda.is_available()):
+        if(False):
             self.opt = opts().parse(['--load_model', 'models/fusion_3d_var.pth'])
             self.opt.device = torch.device('cuda:{}'.format(self.opt.gpus[0]))
         else:
@@ -83,6 +89,54 @@ class PoseModel(object):
             image, results.pose_landmarks, mp_pose.POSE_CONNECTIONS)
 
         return image
+
+
+    def predict_segment(self, image, dev='cpu'):
+        img = image
+        #img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+        img = Image.fromarray(img)
+        nc=21
+        net = models.segmentation.deeplabv3_resnet101(pretrained=1).eval()
+        #if show_orig: plt.imshow(img); plt.axis('off'); plt.show()
+        # Comment the Resize and CenterCrop for better inference results
+        trf = T.Compose([T.Resize(640), 
+                        #T.CenterCrop(224), 
+                        T.ToTensor(), 
+                        T.Normalize(mean = [0.485, 0.456, 0.406], 
+                                    std = [0.229, 0.224, 0.225])])
+        inp = trf(img).unsqueeze(0).to(dev)
+
+        #print(inp)
+
+        out = net.to(dev)(inp)['out']
+        om = torch.argmax(out.squeeze(), dim=0).detach().cpu().numpy()
+        
+        label_colors = np.array([(0, 0, 0),  # 0=background
+                    # 1=aeroplane, 2=bicycle, 3=bird, 4=boat, 5=bottle
+                    (128, 0, 0), (0, 128, 0), (128, 128, 0), (0, 0, 128), (128, 0, 128),
+                    # 6=bus, 7=car, 8=cat, 9=chair, 10=cow
+                    (0, 128, 128), (128, 128, 128), (64, 0, 0), (192, 0, 0), (64, 128, 0),
+                    # 11=dining table, 12=dog, 13=horse, 14=motorbike, 15=person
+                    (192, 128, 0), (64, 0, 128), (192, 0, 128), (64, 128, 128), (192, 128, 128),
+                    # 16=potted plant, 17=sheep, 18=sofa, 19=train, 20=tv/monitor
+                    (0, 64, 0), (128, 64, 0), (0, 192, 0), (128, 192, 0), (0, 64, 128)])
+
+        r = np.zeros_like(om).astype(np.uint8)
+        g = np.zeros_like(om).astype(np.uint8)
+        b = np.zeros_like(om).astype(np.uint8)
+
+        
+        for l in range(0, nc):
+            idx = om == l
+            r[idx] = label_colors[l, 0]
+            g[idx] = label_colors[l, 1]
+            b[idx] = label_colors[l, 2]
+            
+        rgb = np.stack([r, g, b], axis=2)
+        print(rgb)
+        img = Image.fromarray(rgb, 'RGB')
+        return cv2.cvtColor(np.float32(rgb), cv2.COLOR_RGB2BGR)
+
 
     def process_video_into_frames_and_poses(self, video_path):
         vidcap = cv2.VideoCapture(video_path)

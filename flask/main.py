@@ -43,6 +43,7 @@ def gen_frames():
     fps = "0"
 
     use_media_pipe = True
+    use_segmentation = False
     if use_media_pipe:
         model.open_media_pipe()
     while True:
@@ -52,6 +53,14 @@ def gen_frames():
             break
         elif use_media_pipe:
             frame = model.predict_with_mediapipe(frame)
+            fps = 'fps:{}'.format( int(1/(time.time()-start_time)))
+            frame = cv2.putText(frame, fps , org, font, fontScale, color, thickness, cv2.LINE_AA)
+            ret, buffer = cv2.imencode('.jpg', frame)
+            frame = buffer.tobytes()
+            yield (b'--frame\r\n'
+                   b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')  # concat frame one by one and show result
+        elif use_segmentation:
+            frame = model.predict_segment(frame)
             fps = 'fps:{}'.format( int(1/(time.time()-start_time)))
             frame = cv2.putText(frame, fps , org, font, fontScale, color, thickness, cv2.LINE_AA)
             ret, buffer = cv2.imencode('.jpg', frame)
