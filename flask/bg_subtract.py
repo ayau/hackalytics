@@ -11,6 +11,7 @@ only_display_largest_blob = False # only draw the largest blob to reduce noise
 remove_noise = True # remove small blobs and plug some small holes
 skip_frames = 1  # how many frames to process. setting to 3 will process one every 3 frames
 use_cnt_model = False # Faster but less accurate
+crop_height = 100 #the height of the crop up from feet
 
 # use person detection to help narrow down search space
 # To enable this, first download the yolov3.weights and yolov3.cfg from https://medium.com/@luanaebio/detecting-people-with-yolo-and-opencv-5c1f9bc6a810
@@ -18,7 +19,7 @@ use_cnt_model = False # Faster but less accurate
 detect_person = False # ivan: i tried it with various sizes of the yolov model - didn't seem to improve much
 
 
-def run():
+def run(lowest_point=None, first_frame=None, last_frame=None, second_pass=False):
     cap = cv2.VideoCapture(video_name)
 
     if use_cnt_model:
@@ -28,12 +29,30 @@ def run():
 
     frame_num = 0
     while True:
-        ret, frame = cap.read()
 
-        # Uncomment if you want to skip some frames. Maybe we can use binary search to find the launch frame
         frame_num += 1
+        ret, frame = cap.read()
+        if(frame is None): break
+
         if frame_num % skip_frames != 0:
             continue
+
+        #second pass, slice video
+        if(second_pass):
+            if(first_frame):
+                if(frame_num < first_frame):
+                    continue
+
+            if(last_frame):
+                if(frame_num > last_frame):
+                    break
+
+
+        
+        
+
+        # Uncomment if you want to skip some frames. Maybe we can use binary search to find the launch frame
+
 
         start = time.time()
 
@@ -84,19 +103,38 @@ def run():
                 cv2.drawContours(output, [cnt], -1, 255, cv2.FILLED)
                 fgmask = cv2.bitwise_and(fgmask, output)
 
-        print(time.time() - start)
+        #print(time.time() - start)
 
+        # looks for non zero items on the mask
         positions = np.nonzero(fgmask)
-
         if(len(positions[0])>0):
+            #tracks first and last frame with something on the mask
+            if(first_frame is None):
+                first_frame = frame_num
+                lowest_point = 0
+
+            if not second_pass:
+                last_frame= frame_num
+
             top = positions[0].min()
             bottom = positions[0].max()
             left = positions[1].min()
             right = positions[1].max()
+
             fgmask = cv2.rectangle(cv2.cvtColor(fgmask, cv2.COLOR_GRAY2BGR)
                 , (left, top), (right, bottom), (0,255,0), 1)
 
-        cv2.imshow('mask', fgmask) # show mask video
+            if (bottom > lowest_point): lowest_point = bottom
+            #print(lowest_point)
+
+            if(second_pass):
+                crop_fgmask = fgmask[lowest_point-crop_height:lowest_point, :]
+                if(crop_fgmask.size>0):
+                    cv2.imshow('cropped', crop_fgmask) # show mask video
+
+        if not second_pass:
+            cv2.imshow('mask', fgmask) # show mask video
+
         #cv2.imshow('original', frame) # show original video
 
         k = cv2.waitKey(30) & 0xff
@@ -105,6 +143,12 @@ def run():
 
     cap.release()
     cv2.destroyAllWindows()
+
+    print(lowest_point)
+    print(first_frame)
+    print(last_frame)
+
+    return int(lowest_point), first_frame, last_frame
 
 
 # We can first identify people in the frame, then apply background segmentation within those bounds to avoid noise
@@ -159,4 +203,5 @@ def detectPersonBounds(image):
     return max_box
 
 
-run()
+lowest_point, first_frame, last_frame = run() #first pass
+run(lowest_point, first_frame, last_frame, True)
