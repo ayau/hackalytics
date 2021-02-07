@@ -11,7 +11,7 @@ Our initial approach was to perform pose estimation, then figure out the angle b
 
 We then tested a simpler approach with object detection, semantic segmentation, and we found that since the camera is fairly stationary, a simple background subtraction model works well. We tested different background subtraction models and landed on BackgroundSubtractorMOG. To improve the accuracy of the model, we first applied grayscale to the image, along with some gaussian blur to filter out minor details, then performed the background subtraction. We performed background subtraction iteratively on each frame, and updated the model as the video progressed. The resulted segmentation was still noisy, so we used openCV's morphology transformation to remove small patches and fill in gaps in large blobs.
 
-<img src="./flask/static/readme12.jpg" width="400">  |  <img src="./flask/static/readme13.jpg" width="400">
+<img src="./flask/static/readme12.png" width="400">  |  <img src="./flask/static/readme13.png" width="400">
 
 
 We then applied the YOLO object detection algorithm to find the bounding box of the athlete, and then find the largest blob within that bounding box by finding the largest contour.
