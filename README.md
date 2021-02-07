@@ -1,10 +1,8 @@
 # Hurdle Tracker
-Submission for 2021 Hackalytics Hackathon - https://hacklytics.io/
-
+Submission for 2021 Hackalytics Hackathon - https://hacklytics.io/ \
 Collaborators: Alex Yau, Chris Heaney, Ivan Bercovich, Iv Segal
 
-Final Product: https://www.hurdl.us/
-
+Final Product: https://www.hurdl.us/ \
 Video Explanation: https://www.youtube.com/watch?v=oo-AcvX1fAE
 
 ![Screenshot](./flask/static/readme14.png)
