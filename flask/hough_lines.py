@@ -29,8 +29,8 @@ land_coords = (352 * 4, 388 * 4)
 
 
 # Find lines around the jumping / landing coords
-paddingx = 300
-paddingy = 100
+paddingx = int(300 * img.shape[1] / 3840)
+paddingy = int(100 * img.shape[0] / 2160)
 mask = np.zeros(gray.shape[:2], np.uint8)
 start_rect = (int(jump_coords[0] - paddingx), int(jump_coords[1] - paddingy))
 end_rect = (int(jump_coords[0] + paddingx), int(jump_coords[1] + paddingy))
