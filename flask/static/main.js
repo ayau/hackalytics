@@ -8,6 +8,40 @@ const framesRangeByVideo = [
     [103,279]
 ];
 
+// Copied from hough_lines.py output
+const jumpStats = [
+    {
+        jumpDist: 94.2,
+        jumpMargin: -4.5,
+        landMargin: 6.9,
+    },
+    {
+        jumpDist: 99.5,
+        jumpMargin: -1.1,
+        landMargin: 4.9,
+    },
+    {
+        jumpDist: 109.7,
+        jumpMargin: 14.5,
+        landMargin: 10.4,
+    },
+    {
+        jumpDist: null,
+        jumpMargin: null,
+        landMargin: null,
+    },
+    {
+        jumpDist: null,
+        jumpMargin: null,
+        landMargin: null,
+    },
+    {
+        jumpDist: null,
+        jumpMargin: null,
+        landMargin: null,
+    },
+];
+
 let selectedVideoId = 1;
 let baseURL = 'https://www.hurdl.us';
 
