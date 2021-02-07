@@ -9,7 +9,7 @@ html, body {
 body {
 	font-family: 'Poppins', sans-serif;
 	margin: 0;
-	background: #212529;
+	background: #323743;
 }
 
 h1 {
@@ -84,10 +84,45 @@ h1 {
     margin-right: 10px;
 }
 
+.stats {
+    padding: 15px;
+    width: 100%;
+    display: flex;
+}
 
+.stat {
+    display: flex;
+    margin-right: 20px;
+    min-width: 200px;
+}
+
+.stat-icon {
+    border-radius: 50%;
+    padding: 10px;
+    width: 50px;
+    height: 50px;
+    margin-right: 20px;
+}
+
+.stat-icon svg {
+    fill: white;
+}
+
+.stat-name {
+    font-size: 14px;
+    font-weight: 300;
+}
+
+.stat-val {
+    font-size: 18px;
+    font-weight: 600;
+}
 
 .card {
     background: #272b34;
+    color: #b2b9bf;
+    border-radius: 4px;
+    padding: 15px;
 }
 
 #original-vid-wrap {
