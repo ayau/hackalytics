@@ -4,31 +4,37 @@ const jumpStats = [
         jumpDist: 94.2,
         jumpMargin: -4.5,
         landMargin: 6.9,
+        speed:21.41,
     },
     {
         jumpDist: 99.5,
         jumpMargin: -1.1,
         landMargin: 4.9,
+        speed:24.9,
     },
     {
         jumpDist: 109.7,
         jumpMargin: 14.5,
         landMargin: 10.4,
+        speed:21.1,
     },
     {
         jumpDist: null,
         jumpMargin: null,
         landMargin: null,
+        speed:null,
     },
     {
         jumpDist: null,
         jumpMargin: null,
         landMargin: null,
+        speed:null,
     },
     {
         jumpDist: null,
         jumpMargin: null,
         landMargin: null,
+        speed:null,
     },
 ];
 
