@@ -1,13 +1,3 @@
-const framesRangeByVideo = [
-    null, // ivan indexed with 1
-    [55, 195],
-    [48, 120],
-    [219, 330],
-    [3, 150],
-    [8, 110],
-    [103,279]
-];
-
 // Copied from hough_lines.py output
 const jumpStats = [
     {
@@ -45,73 +35,42 @@ const jumpStats = [
 let selectedVideoId = 1;
 let baseURL = 'https://www.hurdl.us';
 
+const originalVid = document.getElementById('original-video');
+const footPlacementVid = document.getElementById('foot-placement-vid');
+const blobPlacementVid = document.getElementById('blob-placement-vid');
+const loadCards = () => {
+    const currentSelectedVideoId = selectedVideoId;
+    let originalVideoPromise = new Promise((resolve, reject) => {
+        originalVid.addEventListener('canplaythrough', () => resolve(() => originalVid.play()));
+        originalVid.src = `${baseURL}/static/media/${selectedVideoId}/video_frames/video.mp4`;
+    });
+
+    let footPlacementVidPromise = new Promise((resolve, reject) => {
+        footPlacementVid.addEventListener('canplaythrough', () => resolve(() => footPlacementVid.play()));
+        footPlacementVid.src = `${baseURL}/static/media/${selectedVideoId}/foot_placement/video.mp4`;
+    });
+
+    let blobPlacementVidPromise = new Promise((resolve, reject) => {
+        blobPlacementVid.addEventListener('canplaythrough', () => resolve(() => blobPlacementVid.play()));
+        blobPlacementVid.src = `${baseURL}/static/media/${selectedVideoId}/blob_placement/video.mp4`;
+    });
+
+    Promise.all([originalVideoPromise, footPlacementVidPromise, blobPlacementVidPromise]).then(cbs => {
+        cbs.forEach(cb => cb());
+    });
+}
+
 const $vidSelect = $('#vid-select');
 const $vidSelectTitle = $('#vid-select-title');
 $('#vid-select a').click(function (e) {
     // remove active class
     $vidSelect.children().removeClass('active');
-
     // update selected video
     const $selectedOpt = $(e.currentTarget);
     selectedVideoId = parseInt($selectedOpt.text());
-
     $vidSelectTitle.text(`Video #${selectedVideoId}`)
-    
     // add back active class
     $(e.currentTarget).addClass('active');
+    loadCards();
 });
-
-let frameNumber = framesRangeByVideo[selectedVideoId][0];
-const getNextFrameNumber = (prevSelectedVideoId) => {
-    if (prevSelectedVideoId !== selectedVideoId) {
-        frameNumber = framesRangeByVideo[selectedVideoId][0];
-        return
-    }
-
-    frameNumber++;
-    if (frameNumber > framesRangeByVideo[selectedVideoId][1]) {
-        frameNumber = framesRangeByVideo[selectedVideoId][0];
-    }
-}
-
-const sleep = (time) => {
-    return new Promise((resolve) => setTimeout(resolve, time));
-}
-
-const cardImageSize = 360;
-const $originalVidContainer = $('#original-vid-container');
-const $footPlacementcontainer = $('#foot-placement-vid-container');
-const $blobPlacementcontainer = $('#blob-placement-vid-container');
-const loadCards = () => {
-    const currentSelectedVideoId = selectedVideoId;
-    let originalVideoPromise = new Promise((resolve, reject) => {
-        const img = new Image(cardImageSize);
-        img.addEventListener('load', () => resolve(() => $originalVidContainer.html(img)));
-        img.addEventListener('error', (err) => resolve(() => {}));
-        img.src = `${baseURL}/media/${selectedVideoId}/video_frames/${frameNumber}.jpg`;
-    });
-
-    let footPlacementPromise = new Promise((resolve, reject) => {
-        const img = new Image(cardImageSize);
-        img.addEventListener('load', () => resolve(() => $footPlacementcontainer.html(img)));
-        img.addEventListener('error', (err) => resolve(() => {}));
-        img.src = `${baseURL}/media/${selectedVideoId}/foot_placement/${frameNumber}.png`;
-    });
-
-    let blobPlacementPromise = new Promise((resolve, reject) => {
-        const img = new Image(cardImageSize);
-        img.addEventListener('load', () => resolve(() => $blobPlacementcontainer.html(img)));
-        img.addEventListener('error', (err) => resolve(() => {}));
-        img.src = `${baseURL}/media/${selectedVideoId}/blob_placement/${frameNumber}.png`;
-    });
-
-    sleep(40).then(() => {
-        Promise.all([originalVideoPromise, footPlacementPromise, blobPlacementPromise]).then(cbs => {
-            cbs.forEach(cb => cb());
-            getNextFrameNumber(currentSelectedVideoId);
-            loadCards()
-        });
-    });
-}
-
-loadCards(frameNumber)
+loadCards()

@@ -1,0 +1,5 @@
+x_left,y_right,distance(last_toe_to_current_heel),last_x_left,last_x_right,y_bottom,last_y_bottom,frame,last_frame
+908,936,24,960,960,363,0,220,0
+372,405,503,908,936,369,363,233,220
+110,142,230,372,405,368,369,238,233
+112,138,28,110,142,371,368,239,238
