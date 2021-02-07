@@ -66,3 +66,6 @@ In order to find the 2d pixel points of the track lines, we take the first frame
 * Run `python -m debugpy --listen 0.0.0.0:5678 -m flask run --host=0.0.0.0 --reload`
 * Go to the `Run` sidebar in VSCode and run `Python: Remote`
 * Set breakboint in main.py
+
+## Processing visdeos
+* The repository is made of a series of scripts that are meant to be run as background jobs. A good place to start is bg_remove.py which will take care of most of the processing except the conversion from px to actual distances. 
