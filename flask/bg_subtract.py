@@ -27,7 +27,9 @@ def render_assets():
     for i in range(1,7):
         video_nbmr = str(i)
         os.makedirs('../media/'+video_nbmr+'/foot_placement', exist_ok=True)
-        os.makedirs('../media/'+video_nbmr+'/video_frames', exist_ok=True)        
+        os.makedirs('../media/'+video_nbmr+'/video_frames', exist_ok=True)    
+        os.makedirs('../media/'+video_nbmr+'/stats', exist_ok=True)
+        os.makedirs('../media/'+video_nbmr+'/blob_placement', exist_ok=True)
         lowest_point, first_frame, last_frame = run(video_nbmr=str(i)) #first pass
         _, _, _ = run(lowest_point, first_frame, last_frame, True, video_nbmr=str(i))
         
@@ -57,6 +59,10 @@ def run(lowest_point=None, first_frame=None, last_frame=None, second_pass=False,
 
         #second pass, slice video
         if(second_pass):
+            if(frame_num==30):
+                frame_path = "../media/"+video_nbmr+"/stats/stats.jpg"
+                cv2.imwrite(frame_path, frame, [int(cv2.IMWRITE_JPEG_QUALITY), 90])
+
             if(first_frame):
                 if(frame_num < first_frame):
                     continue
@@ -66,7 +72,7 @@ def run(lowest_point=None, first_frame=None, last_frame=None, second_pass=False,
                     break
             
             frame_path = "../media/"+video_nbmr+"/video_frames/"+str(frame_num)+".jpg"
-            rst = cv2.imwrite(frame_path, frame, [int(cv2.IMWRITE_JPEG_QUALITY), jpg_quality])
+            cv2.imwrite(frame_path, frame, [int(cv2.IMWRITE_JPEG_QUALITY), jpg_quality])
 
 
 
@@ -122,11 +128,8 @@ def run(lowest_point=None, first_frame=None, last_frame=None, second_pass=False,
         # looks for non zero items on the mask
         positions_y, positions_x = np.nonzero(fgmask)
 
-        if second_pass:
-            #only look at bottom slice
-            positions_x = np.delete(positions_x, np.where(positions_y<lowest_point-crop_height))
-            positions_y = np.delete(positions_y, np.where(positions_y<lowest_point-crop_height))
-            cv2.imwrite("../media/"+video_nbmr+"/foot_placement/"+str(frame_num)+".png", fgmask, [cv2.IMWRITE_PNG_COMPRESSION, 9])
+
+
 
         if(len(positions_x)>0):
 
@@ -138,15 +141,40 @@ def run(lowest_point=None, first_frame=None, last_frame=None, second_pass=False,
             if not second_pass:
                 last_frame= frame_num
 
-            # top = positions_y.min()
+            if second_pass:
+                #use positions before trimming for blob visualization only
+                top = positions_y.min()
+                bottom = positions_y.max()
+                left = positions_x.min()
+                right = positions_x.max()
+
+                #save blob mask for static site
+                blobmask = cv2.rectangle(cv2.cvtColor(frame,cv2.COLOR_GRAY2RGB), (left, top), (right, bottom), (0,255,0), 1)
+                frame_path = "../media/"+video_nbmr+"/blob_placement/"+str(frame_num)+".png"
+                cv2.imwrite(frame_path, blobmask, [int(cv2.IMWRITE_JPEG_QUALITY), jpg_quality])
+
+                #only look at bottom slice
+                positions_x = np.delete(positions_x, np.where(positions_y<lowest_point-crop_height))
+                positions_y = np.delete(positions_y, np.where(positions_y<lowest_point-crop_height))
+                
+
+            if not (len(positions_x)>0): continue
+            top = positions_y.min()
             bottom = positions_y.max()
             left = positions_x.min()
             right = positions_x.max()
 
+            #foot placement frame store
+            frame_path = "../media/"+video_nbmr+"/foot_placement/"+str(frame_num)+".png"
+            cv2.imwrite(frame_path, fgmask, [cv2.IMWRITE_PNG_COMPRESSION, 9])
+
             if (bottom > lowest_point): lowest_point = bottom
+
 
             fgmask = cv2.rectangle(cv2.cvtColor(fgmask, cv2.COLOR_GRAY2BGR)
                 , (left, lowest_point - crop_height), (right, lowest_point), (0,255,0), 1)
+
+
 
 
             if(second_pass):
@@ -180,6 +208,7 @@ def run(lowest_point=None, first_frame=None, last_frame=None, second_pass=False,
         print("jump occurred between pixels {} and  {} with a distance of approx {} pixels".format(
             jump[3], jump[1], jump[2]
         ))
+
 
 
     return lowest_point, first_frame, last_frame
