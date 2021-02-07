@@ -2,21 +2,20 @@
 import cv2
 import numpy as np
 import time
-
+import os
+import sys
 # python3 bg_subtract.py to run it
 
 # Settings
 
-video_nbmr = "2"
-video_name = '../sample_videos/jump'+video_nbmr+'_small.mp4'
-folder = '../sample_videos/'
 only_display_largest_blob = False # only draw the largest blob to reduce noise
 remove_noise = True # remove small blobs and plug some small holes
 skip_frames = 1  # how many frames to process. setting to 3 will process one every 3 frames
 use_cnt_model = False # Faster but less accurate
 crop_height = 15 #the height of the crop up from feet
-foot_width = 25
-
+foot_width = 15
+video_width = 960
+jpg_quality = 25
 
 # use person detection to help narrow down search space
 # To enable this, first download the yolov3.weights and yolov3.cfg from https://medium.com/@luanaebio/detecting-people-with-yolo-and-opencv-5c1f9bc6a810
@@ -24,7 +23,20 @@ foot_width = 25
 detect_person = False # ivan: i tried it with various sizes of the yolov model - didn't seem to improve much
 
 
-def run(lowest_point=None, first_frame=None, last_frame=None, second_pass=False):
+def render_assets():
+    for i in range(1,7):
+        video_nbmr = str(i)
+        os.makedirs('../media/'+video_nbmr+'/foot_placement', exist_ok=True)
+        os.makedirs('../media/'+video_nbmr+'/video_frames', exist_ok=True)    
+        os.makedirs('../media/'+video_nbmr+'/stats', exist_ok=True)
+        os.makedirs('../media/'+video_nbmr+'/blob_placement', exist_ok=True)
+        lowest_point, first_frame, last_frame = run(video_nbmr=str(i)) #first pass
+        _, _, _ = run(lowest_point, first_frame, last_frame, True, video_nbmr=str(i))
+        
+
+def run(lowest_point=None, first_frame=None, last_frame=None, second_pass=False, video_nbmr=5):
+    folder = '../sample_videos/'
+    video_name = folder+'jump'+video_nbmr+'_small.mp4'
     cap = cv2.VideoCapture(video_name)
 
     if use_cnt_model:
@@ -34,18 +46,23 @@ def run(lowest_point=None, first_frame=None, last_frame=None, second_pass=False)
 
     frame_num = 0
     data = []
-    last_left, last_right, last_bottom = (960, 0, 0) #assumes 960px width
+    last_left, last_right, last_bottom = (video_width, video_width, 0) 
     while True:
 
         frame_num += 1
-        ret, frame = cap.read()
+        _, frame = cap.read()
         if(frame is None): break
 
+        # Uncomment if you want to skip some frames. Maybe we can use binary search to find the launch frame
         if frame_num % skip_frames != 0:
             continue
 
         #second pass, slice video
         if(second_pass):
+            if(frame_num==30):
+                stats_frame = frame.copy()
+
+
             if(first_frame):
                 if(frame_num < first_frame):
                     continue
@@ -53,8 +70,10 @@ def run(lowest_point=None, first_frame=None, last_frame=None, second_pass=False)
             if(last_frame):
                 if(frame_num > last_frame):
                     break
+            
+            frame_path = "../media/"+video_nbmr+"/video_frames/"+str(frame_num)+".jpg"
+            cv2.imwrite(frame_path, frame, [int(cv2.IMWRITE_JPEG_QUALITY), jpg_quality])
 
-        # Uncomment if you want to skip some frames. Maybe we can use binary search to find the launch frame
 
 
         start = time.time()
@@ -106,15 +125,11 @@ def run(lowest_point=None, first_frame=None, last_frame=None, second_pass=False)
                 cv2.drawContours(output, [cnt], -1, 255, cv2.FILLED)
                 fgmask = cv2.bitwise_and(fgmask, output)
 
-        #print(time.time() - start)
-
         # looks for non zero items on the mask
         positions_y, positions_x = np.nonzero(fgmask)
 
-        if second_pass:
-            #only look at bottom slice
-            positions_x = np.delete(positions_x, np.where(positions_y<lowest_point-crop_height))
-            positions_y = np.delete(positions_y, np.where(positions_y<lowest_point-crop_height))
+
+
 
         if(len(positions_x)>0):
 
@@ -126,16 +141,39 @@ def run(lowest_point=None, first_frame=None, last_frame=None, second_pass=False)
             if not second_pass:
                 last_frame= frame_num
 
+            if second_pass:
+                #use positions before trimming for blob visualization only
+                top = positions_y.min()
+                bottom = positions_y.max()
+                left = positions_x.min()
+                right = positions_x.max()
+
+                #save blob mask for static site
+                blobmask = cv2.rectangle(cv2.cvtColor(frame,cv2.COLOR_GRAY2RGB), (left, top), (right, bottom), (0,255,0), 1)
+                frame_path = "../media/"+video_nbmr+"/blob_placement/"+str(frame_num)+".png"
+                cv2.imwrite(frame_path, blobmask, [int(cv2.IMWRITE_JPEG_QUALITY), jpg_quality])
+
+                #only look at bottom slice
+                positions_x = np.delete(positions_x, np.where(positions_y<lowest_point-crop_height))
+                positions_y = np.delete(positions_y, np.where(positions_y<lowest_point-crop_height))
+                
+
+            if not (len(positions_x)>0): continue
             top = positions_y.min()
             bottom = positions_y.max()
             left = positions_x.min()
             right = positions_x.max()
 
+            #foot placement frame store
+            frame_path = "../media/"+video_nbmr+"/foot_placement/"+str(frame_num)+".png"
+            cv2.imwrite(frame_path, fgmask, [cv2.IMWRITE_PNG_COMPRESSION, 9])
+
             if (bottom > lowest_point): lowest_point = bottom
-            #print(lowest_point)
+
 
             fgmask = cv2.rectangle(cv2.cvtColor(fgmask, cv2.COLOR_GRAY2BGR)
                 , (left, lowest_point - crop_height), (right, lowest_point), (0,255,0), 1)
+
 
 
 
@@ -144,9 +182,9 @@ def run(lowest_point=None, first_frame=None, last_frame=None, second_pass=False)
                 if(crop_fgmask.size>0):
                     if( (lowest_point-bottom)< crop_height and (right-left) > foot_width ):
                         # assume runner is coming from the right side (ccw running, filming from inside the track)
-                        data.append([left, right, abs(last_left-right), last_left, last_right, bottom])
+                        data.append([left, right, abs(last_left-right), last_left, last_right, bottom, last_bottom, frame_num])
                         last_left, last_right, last_bottom = (left, right, bottom)
-                        cv2.imwrite(folder+"step_"+video_nbmr+"_"+str(frame_num)+".jpg", fgmask)
+                        cv2.imwrite("../media/"+video_nbmr+"/foot_placement/"+str(frame_num)+".png", fgmask, [cv2.IMWRITE_PNG_COMPRESSION, 9])
                     cv2.imshow('cropped', crop_fgmask) # show mask video
 
         if not second_pass:
@@ -162,7 +200,6 @@ def run(lowest_point=None, first_frame=None, last_frame=None, second_pass=False)
     cv2.destroyAllWindows()
 
     if len(data)>0 :
-        #data.pop(0) #discard first value
         data = np.array(data)
         print(data)
         jump = data[ np.argmax(data[:,2]) ] #find max delta between x values at bottom of slice
@@ -171,9 +208,17 @@ def run(lowest_point=None, first_frame=None, last_frame=None, second_pass=False)
         print("jump occurred between pixels {} and  {} with a distance of approx {} pixels".format(
             jump[3], jump[1], jump[2]
         ))
+        print('x,y start: {},{} - x,y end: {},{}'.format(
+            jump[3],jump[6],jump[1],jump[5]
+        ))
+        frame_path = "../media/"+video_nbmr+"/stats/stats.jpg"
+        stats_frame = cv2.circle(stats_frame, (jump[1],jump[5]), radius=5, color=(50, 168, 82), thickness=-1)
+        stats_frame = cv2.circle(stats_frame, (jump[3],jump[6]), radius=5, color=(50, 60, 168), thickness=-1)
+        cv2.imwrite(frame_path, stats_frame, [int(cv2.IMWRITE_JPEG_QUALITY), 90])
 
 
-    return int(lowest_point), first_frame, last_frame
+
+    return lowest_point, first_frame, last_frame
 
 
 # We can first identify people in the frame, then apply background segmentation within those bounds to avoid noise
@@ -227,6 +272,6 @@ def detectPersonBounds(image):
 
     return max_box
 
-
-lowest_point, first_frame, last_frame = run() #first pass
-run(lowest_point, first_frame, last_frame, True)
+render_assets()
+#lowest_point, first_frame, last_frame = run() #first pass
+#_, _, _ = run(lowest_point, first_frame, last_frame, True)

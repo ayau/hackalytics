@@ -9,12 +9,14 @@ if lib_path not in sys.path:
     sys.path.insert(0, lib_path)
 
 # Rest of the imports
-from flask import Flask, request, Response, session
+from flask import Flask, request, Response, session, render_template, Markup
 from flask_session import Session
 import cv2
 from pose_model import PoseModel
 from utils.debugger import show_2d, mpii_edges
 import time
+
+import card_builder
 
 app = Flask(__name__, static_url_path="/static")
 SESSION_TYPE = 'filesystem'
@@ -27,6 +29,8 @@ uploads_dir = os.path.join(this_dir, 'video_uploads')
 @app.route('/')
 def static_file():
     return app.send_static_file('index.html')
+    # cards = Markup(card_builder.build(1))
+    # return render_template('index.html', cards=cards)
 
 @app.route('/upload_video', methods=['POST'])
 def process_video():
