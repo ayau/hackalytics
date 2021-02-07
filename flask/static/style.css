@@ -21,3 +21,14 @@ h1 {
 #stream {
     border-radius: 8px;
 }
+
+#video {
+    width: 80%;
+    display: block;
+    margin: auto;
+}
+
+#file-input {
+    display: block;
+    margin: auto;
+}
