@@ -9,6 +9,7 @@ const framesRangeByVideo = [
 ];
 
 let selectedVideoId = 1;
+let baseURL = 'https://raw.githubusercontent.com/hurd1/hurd1.github.io/main/media';
 
 const $vidSelect = $('#vid-select');
 const $vidSelectTitle = $('#vid-select-title');
@@ -53,21 +54,21 @@ const loadCards = () => {
         const img = new Image(cardImageSize);
         img.addEventListener('load', () => resolve(() => $originalVidContainer.html(img)));
         img.addEventListener('error', (err) => resolve(() => {}));
-        img.src = `/static/media/${selectedVideoId}/video_frames/${frameNumber}.jpg`;
+        img.src = `${baseURL}/${selectedVideoId}/video_frames/${frameNumber}.jpg`;
     });
 
     let footPlacementPromise = new Promise((resolve, reject) => {
         const img = new Image(cardImageSize);
         img.addEventListener('load', () => resolve(() => $footPlacementcontainer.html(img)));
         img.addEventListener('error', (err) => resolve(() => {}));
-        img.src = `/static/media/${selectedVideoId}/foot_placement/${frameNumber}.png`;
+        img.src = `${baseURL}/media/${selectedVideoId}/foot_placement/${frameNumber}.png`;
     });
 
     let blobPlacementPromise = new Promise((resolve, reject) => {
         const img = new Image(cardImageSize);
         img.addEventListener('load', () => resolve(() => $blobPlacementcontainer.html(img)));
         img.addEventListener('error', (err) => resolve(() => {}));
-        img.src = `/static/media/${selectedVideoId}/blob_placement/${frameNumber}.png`;
+        img.src = `${baseURL}/media/${selectedVideoId}/blob_placement/${frameNumber}.png`;
     });
 
     sleep(40).then(() => {
