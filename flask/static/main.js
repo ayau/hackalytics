@@ -9,7 +9,7 @@ const framesRangeByVideo = [
 ];
 
 let selectedVideoId = 1;
-let baseURL = 'https://raw.githubusercontent.com/hurd1/hurd1.github.io/main/media';
+let baseURL = 'https://www.hurdl.us/';
 
 const $vidSelect = $('#vid-select');
 const $vidSelectTitle = $('#vid-select-title');
