@@ -6,12 +6,16 @@ import time
 # python3 bg_subtract.py to run it
 
 # Settings
-video_name = '../sample_videos/jump3_small.mp4'
+
+video_nbmr = "2"
+video_name = '../sample_videos/jump'+video_nbmr+'_small.mp4'
+folder = '../sample_videos/'
 only_display_largest_blob = False # only draw the largest blob to reduce noise
 remove_noise = True # remove small blobs and plug some small holes
 skip_frames = 1  # how many frames to process. setting to 3 will process one every 3 frames
 use_cnt_model = False # Faster but less accurate
-crop_height = 10 #the height of the crop up from feet
+crop_height = 15 #the height of the crop up from feet
+foot_width = 25
 
 
 # use person detection to help narrow down search space
@@ -30,7 +34,7 @@ def run(lowest_point=None, first_frame=None, last_frame=None, second_pass=False)
 
     frame_num = 0
     data = []
-    last_left, last_right, last_bottom = (0, 0, 0)
+    last_left, last_right, last_bottom = (960, 0, 0) #assumes 960px width
     while True:
 
         frame_num += 1
@@ -105,8 +109,14 @@ def run(lowest_point=None, first_frame=None, last_frame=None, second_pass=False)
         #print(time.time() - start)
 
         # looks for non zero items on the mask
-        positions = np.nonzero(fgmask)
-        if(len(positions[0])>0):
+        positions_y, positions_x = np.nonzero(fgmask)
+
+        if second_pass:
+            #only look at bottom slice
+            positions_x = np.delete(positions_x, np.where(positions_y<lowest_point-crop_height))
+            positions_y = np.delete(positions_y, np.where(positions_y<lowest_point-crop_height))
+
+        if(len(positions_x)>0):
 
             #tracks first and last frame with something on the mask
             if(first_frame is None):
@@ -116,24 +126,27 @@ def run(lowest_point=None, first_frame=None, last_frame=None, second_pass=False)
             if not second_pass:
                 last_frame= frame_num
 
-            top = positions[0].min()
-            bottom = positions[0].max()
-            left = positions[1].min()
-            right = positions[1].max()
-
-            fgmask = cv2.rectangle(cv2.cvtColor(fgmask, cv2.COLOR_GRAY2BGR)
-                , (left, top), (right, bottom), (0,255,0), 1)
+            top = positions_y.min()
+            bottom = positions_y.max()
+            left = positions_x.min()
+            right = positions_x.max()
 
             if (bottom > lowest_point): lowest_point = bottom
             #print(lowest_point)
 
+            fgmask = cv2.rectangle(cv2.cvtColor(fgmask, cv2.COLOR_GRAY2BGR)
+                , (left, lowest_point - crop_height), (right, lowest_point), (0,255,0), 1)
+
+
+
             if(second_pass):
                 crop_fgmask = fgmask[lowest_point-crop_height:lowest_point, :]
                 if(crop_fgmask.size>0):
-                    if( (lowest_point-bottom)< crop_height):
+                    if( (lowest_point-bottom)< crop_height and (right-left) > foot_width ):
                         # assume runner is coming from the right side (ccw running, filming from inside the track)
-                        data.append([left, abs(left-last_left), last_left])
+                        data.append([left, right, abs(last_left-right), last_left, last_right, bottom])
                         last_left, last_right, last_bottom = (left, right, bottom)
+                        cv2.imwrite(folder+"step_"+video_nbmr+"_"+str(frame_num)+".jpg", fgmask)
                     cv2.imshow('cropped', crop_fgmask) # show mask video
 
         if not second_pass:
@@ -149,12 +162,14 @@ def run(lowest_point=None, first_frame=None, last_frame=None, second_pass=False)
     cv2.destroyAllWindows()
 
     if len(data)>0 :
-        data.pop(0) #discard first value
+        #data.pop(0) #discard first value
         data = np.array(data)
         print(data)
         jump = data[ np.argmax(data[:,2]) ] #find max delta between x values at bottom of slice
+        # the jump/step starts at the last seen bottom left point (the front of the shoe coming from right)
+        # the jump/step ends at the back of the foot which is the bottom right point
         print("jump occurred between pixels {} and  {} with a distance of approx {} pixels".format(
-            jump[2], jump[0], jump[1]
+            jump[3], jump[1], jump[2]
         ))
 
 
