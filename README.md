@@ -9,7 +9,9 @@ Our initial approach was to perform pose estimation, then figure out the angle b
 
 <img src="./flask/static/readme9.png" width="200">  |  <img src="./flask/static/readme10.png" width="250"> | <img src="./flask/static/readme11.png" width="300">
 
-We then tested a simpler approach with object detection, semantic segmentation, and we found that since the camera is fairly stationary, a simple background subtraction model works well. We tested different background subtraction models and landed on BackgroundSubtractorMOG. To improve the accuracy of the model, we first applied grayscale to the image, along with some gaussian blur to filter out minor details, then performed the background subtraction. We performed background subtraction iteratively on each frame, and updated the model as the video progressed. The resulted segmentation was still noisy, so we used openCV's morphology transformation to remove small patches and fill in gaps in large blobs.
+We initially explore using pose detection, both 2D and 3D models. Unfortunately these and other machine learning models (such as segmentation) are not trained on uncommon positions, such as in the middle of a sprint or jump. Some experimentation also seems to indicate there is still racial bias on these models which worked best for white athletes. 
+
+We next then tested a simpler approach with object detection, semantic segmentation, and we found that since the camera is fairly stationary, a simple background subtraction model works well. We tested different background subtraction models and landed on BackgroundSubtractorMOG. To improve the accuracy of the model, we first applied grayscale to the image, along with some gaussian blur to filter out minor details, then performed the background subtraction. We performed background subtraction iteratively on each frame, and updated the model as the video progressed. The resulted segmentation was still noisy, so we used openCV's morphology transformation to remove small patches and fill in gaps in large blobs.
 
 <img src="./flask/static/readme12.png" width="400">  |  <img src="./flask/static/readme13.png" width="400">
 
