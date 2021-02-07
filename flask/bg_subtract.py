@@ -126,6 +126,7 @@ def run(lowest_point=None, first_frame=None, last_frame=None, second_pass=False,
             #only look at bottom slice
             positions_x = np.delete(positions_x, np.where(positions_y<lowest_point-crop_height))
             positions_y = np.delete(positions_y, np.where(positions_y<lowest_point-crop_height))
+            cv2.imwrite("../media/"+video_nbmr+"/foot_placement/"+str(frame_num)+".png", fgmask, [cv2.IMWRITE_PNG_COMPRESSION, 9])
 
         if(len(positions_x)>0):
 
@@ -155,7 +156,7 @@ def run(lowest_point=None, first_frame=None, last_frame=None, second_pass=False,
                         # assume runner is coming from the right side (ccw running, filming from inside the track)
                         data.append([left, right, abs(last_left-right), last_left, last_right, bottom, frame_num])
                         last_left, last_right = (left, right)
-                        cv2.imwrite("../media/"+video_nbmr+"/foot_placement/"+str(frame_num)+".jpg", fgmask, [int(cv2.IMWRITE_JPEG_QUALITY), jpg_quality])
+                        cv2.imwrite("../media/"+video_nbmr+"/foot_placement/"+str(frame_num)+".png", fgmask, [cv2.IMWRITE_PNG_COMPRESSION, 9])
                     cv2.imshow('cropped', crop_fgmask) # show mask video
 
         if not second_pass:
