@@ -140,7 +140,7 @@ def run(lowest_point=None, first_frame=None, last_frame=None, second_pass=False)
                 if(crop_fgmask.size>0):
                     if( (lowest_point-bottom)< crop_height and (right-left) > foot_width ):
                         # assume runner is coming from the right side (ccw running, filming from inside the track)
-                        data.append([left, right, abs(last_left-right), last_left, last_right, bottom])
+                        data.append([left, right, abs(last_left-right), last_left, last_right, bottom, frame_num])
                         last_left, last_right = (left, right)
                         cv2.imwrite(folder+"step_"+video_nbmr+"_"+str(frame_num)+".jpg", fgmask)
                     cv2.imshow('cropped', crop_fgmask) # show mask video
