@@ -62,22 +62,25 @@ data = [
     [(827 * 4, 359 * 4), (383 * 4, 366 * 4)],
     [(908 * 4, 363 * 4), (405 * 4, 369 * 4)],
     [(0,0), (0,0)], #nothing returned for video 4
-    [(960 * 4, 0 * 4), (607 * 4, 373 * 4)], # weird y axis for jumping
-    [(960 * 4, 0 * 4), (595 * 4, 374 * 4)]
+    [(943 * 4, 365 * 4), (743 * 4, 375 * 4)], 
+    [(284 * 4, 373 * 4), (81 * 4, 374 * 4)]
 
 ]
 
 for i in range(6):
+    if i == 3: continue # 4th video is fucked
     folder = '../sample_videos/'
-    video_name = folder + 'jump' + str(i + 1) + '.mp4' # if we use small videos, we need to adjust the smooth = cv2.GaussianBlur(gray, (11, 11), 0) to be smaller, like 3
+    video_name = folder + 'jump' + str(i+1) + '.mp4' # if we use small videos, we need to adjust the smooth = cv2.GaussianBlur(gray, (11, 11), 0) to be smaller, like 3
     cap = cv2.VideoCapture(video_name)
     _, img = cap.read()
-    cv2.imshow(str(i), display_lines_and_step(img, data[i][0], data[i][1]))
+    frame_path = "../media/"+str(i+1)+"/stats/ground_markings.jpg"
+    cv2.imwrite(frame_path, display_lines_and_step(img, data[i][0], data[i][1]), [int(cv2.IMWRITE_JPEG_QUALITY), 90])
+    #cv2.imshow(str(i), display_lines_and_step(img, data[i][0], data[i][1]))
 
-while True:
+#while True:
     # Exit OpenCV
-    k = cv2.waitKey(30) & 0xff
-    if k == 27:
-        break
+    #k = cv2.waitKey(30) & 0xff
+    #if k == 27:
+        #break
 
 cv2.destroyAllWindows()

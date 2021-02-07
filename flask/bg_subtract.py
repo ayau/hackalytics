@@ -14,7 +14,7 @@ remove_noise = True # remove small blobs and plug some small holes
 skip_frames = 1  # how many frames to process. setting to 3 will process one every 3 frames
 use_cnt_model = False # Faster but less accurate
 crop_height = 15 #the height of the crop up from feet
-foot_width = 15
+foot_width = 5
 video_width = 960
 jpg_quality = 25
 
@@ -26,16 +26,21 @@ detect_person = False # ivan: i tried it with various sizes of the yolov model -
 
 def render_assets():
     for i in range(1,7):
+        if i == 4: continue #video 4 is messed up
         video_nbmr = str(i)
         os.makedirs('../media/'+video_nbmr+'/foot_placement', exist_ok=True)
         os.makedirs('../media/'+video_nbmr+'/video_frames', exist_ok=True)    
         os.makedirs('../media/'+video_nbmr+'/stats', exist_ok=True)
         os.makedirs('../media/'+video_nbmr+'/blob_placement', exist_ok=True)
         lowest_point, first_frame, last_frame = run(video_nbmr=str(i)) #first pass
-        _, _, _ = run(lowest_point, first_frame, last_frame, True, video_nbmr=str(i))
+        foot_width = 25
+        if i > 3:
+            foot_width = 5
+
+        _, _, _ = run(lowest_point, first_frame, last_frame, True, str(i), foot_width)
         
 
-def run(lowest_point=None, first_frame=None, last_frame=None, second_pass=False, video_nbmr=5):
+def run(lowest_point=None, first_frame=None, last_frame=None, second_pass=False, video_nbmr=5, foot_width=5):
     folder = '../sample_videos/'
     video_name = folder+'jump'+video_nbmr+'_small.mp4'
     cap = cv2.VideoCapture(video_name)
