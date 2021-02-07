@@ -10,11 +10,9 @@ We were provided 6 videos of athletes jumping over hurdles filmed with a monocul
 
 ### 1. Detecting when the athlete makes the jump
 
-Our initial approach was to perform pose estimation, then figure out the angle between each joint to determine when the athlete is jumping. Although we were able to identify poses most frames, we realized we still needed the pixel position of the feet in order to accurately measure the jump and land positions.
+We initially explore using pose detection, both 2D and 3D models. Unfortunately these and other machine learning models (such as segmentation) are not trained on uncommon positions, such as in the middle of a sprint or jump. Some experimentation also seems to indicate there is still racial bias on these models which worked best for white athletes. 
 
 <img src="./flask/static/readme9.png" width="200">  |  <img src="./flask/static/readme10.png" width="250"> | <img src="./flask/static/readme11.png" width="300">
-
-We initially explore using pose detection, both 2D and 3D models. Unfortunately these and other machine learning models (such as segmentation) are not trained on uncommon positions, such as in the middle of a sprint or jump. Some experimentation also seems to indicate there is still racial bias on these models which worked best for white athletes. 
 
 We next then tested a simpler approach with object detection, semantic segmentation, and we found that since the camera is fairly stationary, a simple background subtraction model works well. We tested different background subtraction models and landed on BackgroundSubtractorMOG. To improve the accuracy of the model, we first applied grayscale to the image, along with some gaussian blur to filter out minor details, then performed the background subtraction. We performed background subtraction iteratively on each frame, and updated the model as the video progressed. The resulted segmentation was still noisy, so we used openCV's morphology transformation to remove small patches and fill in gaps in large blobs.
 
