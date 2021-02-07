@@ -9,7 +9,7 @@ const framesRangeByVideo = [
 ];
 
 let selectedVideoId = 1;
-let baseURL = 'https://www.hurdl.us/';
+let baseURL = 'https://www.hurdl.us';
 
 const $vidSelect = $('#vid-select');
 const $vidSelectTitle = $('#vid-select-title');
