@@ -2,21 +2,20 @@
 import cv2
 import numpy as np
 import time
-
+import os
+import sys
 # python3 bg_subtract.py to run it
 
 # Settings
 
-video_nbmr = "2"
-folder = '../sample_videos/'
-video_name = folder+'jump'+video_nbmr+'_small.mp4'
 only_display_largest_blob = False # only draw the largest blob to reduce noise
 remove_noise = True # remove small blobs and plug some small holes
 skip_frames = 1  # how many frames to process. setting to 3 will process one every 3 frames
 use_cnt_model = False # Faster but less accurate
 crop_height = 15 #the height of the crop up from feet
-foot_width = 25
+foot_width = 15
 video_width = 960
+jpg_quality = 25
 
 # use person detection to help narrow down search space
 # To enable this, first download the yolov3.weights and yolov3.cfg from https://medium.com/@luanaebio/detecting-people-with-yolo-and-opencv-5c1f9bc6a810
@@ -24,7 +23,18 @@ video_width = 960
 detect_person = False # ivan: i tried it with various sizes of the yolov model - didn't seem to improve much
 
 
-def run(lowest_point=None, first_frame=None, last_frame=None, second_pass=False):
+def render_assets():
+    for i in range(1,7):
+        video_nbmr = str(i)
+        os.makedirs('../media/'+video_nbmr+'/foot_placement', exist_ok=True)
+        os.makedirs('../media/'+video_nbmr+'/video_frames', exist_ok=True)        
+        lowest_point, first_frame, last_frame = run(video_nbmr=str(i)) #first pass
+        _, _, _ = run(lowest_point, first_frame, last_frame, True, video_nbmr=str(i))
+        
+
+def run(lowest_point=None, first_frame=None, last_frame=None, second_pass=False, video_nbmr=5):
+    folder = '../sample_videos/'
+    video_name = folder+'jump'+video_nbmr+'_small.mp4'
     cap = cv2.VideoCapture(video_name)
 
     if use_cnt_model:
@@ -54,6 +64,9 @@ def run(lowest_point=None, first_frame=None, last_frame=None, second_pass=False)
             if(last_frame):
                 if(frame_num > last_frame):
                     break
+            
+            frame_path = "../media/"+video_nbmr+"/video_frames/"+str(frame_num)+".jpg"
+            rst = cv2.imwrite(frame_path, frame, [int(cv2.IMWRITE_JPEG_QUALITY), jpg_quality])
 
 
 
@@ -142,7 +155,7 @@ def run(lowest_point=None, first_frame=None, last_frame=None, second_pass=False)
                         # assume runner is coming from the right side (ccw running, filming from inside the track)
                         data.append([left, right, abs(last_left-right), last_left, last_right, bottom, frame_num])
                         last_left, last_right = (left, right)
-                        cv2.imwrite(folder+"step_"+video_nbmr+"_"+str(frame_num)+".jpg", fgmask)
+                        cv2.imwrite("../media/"+video_nbmr+"/foot_placement/"+str(frame_num)+".jpg", fgmask, [int(cv2.IMWRITE_JPEG_QUALITY), jpg_quality])
                     cv2.imshow('cropped', crop_fgmask) # show mask video
 
         if not second_pass:
@@ -168,7 +181,7 @@ def run(lowest_point=None, first_frame=None, last_frame=None, second_pass=False)
         ))
 
 
-    return int(lowest_point), first_frame, last_frame, data
+    return lowest_point, first_frame, last_frame
 
 
 # We can first identify people in the frame, then apply background segmentation within those bounds to avoid noise
@@ -222,6 +235,6 @@ def detectPersonBounds(image):
 
     return max_box
 
-
-lowest_point, first_frame, last_frame, data = run() #first pass
-_, _, _, data = run(lowest_point, first_frame, last_frame, True)
+render_assets()
+#lowest_point, first_frame, last_frame = run() #first pass
+#_, _, _ = run(lowest_point, first_frame, last_frame, True)
