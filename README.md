@@ -1,4 +1,9 @@
 # Hurdle Tracker
+https://www.hurdl.us/
+
+![Screenshot](./flask/static/readme14.png)
+
+
 The goal of this project is to come up with a pipeline to extract as much information as possible from videos of athletes jumping over hurdles, which can help athletes fine tune their jumps over time.
         
 We were provided 6 videos of athletes jumping over hurdles filmed with a monocular camera. We broke down the problem into two parts: 1) Detecting when the athlete makes the jump and lands 2) Estimating the distance of the jump based on the camera position and objects on the field.
@@ -36,7 +41,6 @@ Most robust distance measurements in computer vision requires at least two camer
 In order to find the 2d pixel points of the track lines, we take the first frame of the video (when the athlete is not present), strip the top half of the image, and apply a threshold to highlight the white-ish parts, which usually corresponds to the track lines. Using the jump / landing frames from step 1 as well as the pixels from the athlete's foot when jumping / landing, we can isolate the track lines closest to the feet. In order to identify the jump / landing lines separate from track lines, we used OpenCV's HoughLinesP to detect lines from our processed image, then clustered and filtered lines based on angle and position.</p>
 
 ![Screenshot](./flask/static/readme4.png)
-
 
 # Development
 ## Set up
