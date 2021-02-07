@@ -15,8 +15,6 @@ from pose_model import PoseModel
 from utils.debugger import show_2d, mpii_edges
 import time
 
-import card_builder
-
 app = Flask(__name__, static_url_path="/static")
 
 # state for uploading a video

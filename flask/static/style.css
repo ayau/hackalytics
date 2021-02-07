@@ -2,15 +2,100 @@
 	box-sizing: border-box;
 }
 
+html, body {
+    height: 100%
+}
+
 body {
 	font-family: 'Poppins', sans-serif;
 	margin: 0;
+	background: #212529;
 }
 
 h1 {
     font-weight: 600;
     text-align: center;
+    color: white;
 }
+
+#main {
+    display: flex;
+    height: 100%;
+}
+
+.left-panel {
+    width: 250px;
+    height: 100%;
+    background: #1d2126;
+    overflow-y: auto;
+}
+
+.main-panel {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    overflow-y: auto;
+}
+
+.team-member-names {
+    color: #b2b9bf;
+    position: absolute;
+    right: 0;
+    top: 0;
+    padding: 15px;
+}
+
+
+.thumb {
+    border-radius: 4px;
+    margin: 10px;
+    padding-bottom: 5px;
+    background: #272b34;
+}
+
+.thumb-img {
+    width: 100%;
+}
+
+.thumb-display {
+    color: #a1aab2;
+    font-weight: 300;
+    font-size: 14px;
+    width: 100%;
+    text-align: center;
+}
+
+
+
+.video-wrap {
+    width: 100%;
+    display: flex;
+    padding: 0px 20px;
+}
+
+.video {
+    border-radius: 4px;
+}
+
+.original-vid {
+    width: 800px;
+    height: 600px;
+    margin-right: 10px;
+}
+
+
+
+.card {
+    background: #272b34;
+}
+
+#original-vid-wrap {
+    padding: 10px;
+}
+
+
+
 
 #stream-wrap {
     display: flex;
