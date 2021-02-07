@@ -39,7 +39,7 @@ const jumpStats = [
 ];
 
 let selectedVideoId = 1;
-let baseURL = 'https://www.hurdl.us';
+let baseURL = ''; //https://www.hurdl.us';
 
 const originalVid = document.getElementById('original-video');
 const footPlacementVid = document.getElementById('foot-placement-vid');
@@ -61,6 +61,13 @@ const loadCards = () => {
         blobPlacementVid.src = `${baseURL}/static/media/${selectedVideoId}/blob_placement/video.mp4`;
     });
 
+    // Update stats
+    const stat = jumpStats[selectedVideoId - 1];
+    $('#stat-jump-distance').text(stat.jumpDist ? stat.jumpDist + '"' : '-');
+    $('#stat-speed').text(stat.speed ? stat.speed + ' ft/s' : '-');
+    $('#stat-jump-margin').text(stat.jumpMargin ? (stat.jumpMargin > 0 ? stat.jumpMargin + '" before line' : (-1 * stat.jumpMargin) + '" after line') : '-');
+    $('#stat-land-margin').text(stat.landMargin ? (stat.landMargin > 0 ? stat.landMargin + '" before line' : (-1 * stat.landMargin) + '" after line') : '-');
+
     Promise.all([originalVideoPromise, footPlacementVidPromise, blobPlacementVidPromise]).then(cbs => {
         cbs.forEach(cb => cb());
     });
@@ -68,15 +75,14 @@ const loadCards = () => {
 
 const $vidSelect = $('#vid-select');
 const $vidSelectTitle = $('#vid-select-title');
-$('#vid-select a').click(function (e) {
-    // remove active class
-    $vidSelect.children().removeClass('active');
-    // update selected video
-    const $selectedOpt = $(e.currentTarget);
-    selectedVideoId = parseInt($selectedOpt.text());
-    $vidSelectTitle.text(`Video #${selectedVideoId}`)
-    // add back active class
-    $(e.currentTarget).addClass('active');
-    loadCards();
+$('.thumb').click(function (e) {
+    const vidId = $(this).data('id');
+    if (selectedVideoId != vidId) {
+        $('.thumb.active').removeClass('active');
+        $(this).addClass('active');
+        selectedVideoId = vidId;
+        loadCards();
+    }
 });
+
 loadCards()
