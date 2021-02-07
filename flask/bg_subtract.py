@@ -4,6 +4,7 @@ import numpy as np
 import time
 import os
 import sys
+import pandas as pd
 # python3 bg_subtract.py to run it
 
 # Settings
@@ -38,6 +39,9 @@ def run(lowest_point=None, first_frame=None, last_frame=None, second_pass=False,
     folder = '../sample_videos/'
     video_name = folder+'jump'+video_nbmr+'_small.mp4'
     cap = cv2.VideoCapture(video_name)
+    fps = cap.get(cv2.CAP_PROP_FPS)
+    #print(fps)
+    #sys.exit()
 
     if use_cnt_model:
         fgbg = cv2.bgsegm.createBackgroundSubtractorCNT() # way faster but a bit noisier
@@ -46,7 +50,7 @@ def run(lowest_point=None, first_frame=None, last_frame=None, second_pass=False,
 
     frame_num = 0
     data = []
-    last_left, last_right, last_bottom = (video_width, video_width, 0) 
+    last_left, last_right, last_bottom, last_frame_num = (video_width, video_width, 0, 0) 
     while True:
 
         frame_num += 1
@@ -182,8 +186,18 @@ def run(lowest_point=None, first_frame=None, last_frame=None, second_pass=False,
                 if(crop_fgmask.size>0):
                     if( (lowest_point-bottom)< crop_height and (right-left) > foot_width ):
                         # assume runner is coming from the right side (ccw running, filming from inside the track)
-                        data.append([left, right, abs(last_left-right), last_left, last_right, bottom, last_bottom, frame_num])
-                        last_left, last_right, last_bottom = (left, right, bottom)
+                        data.append([
+                            left,
+                            right,
+                            abs(last_left-right),
+                            last_left,
+                            last_right,
+                            bottom,
+                            last_bottom,
+                            frame_num,
+                            last_frame_num
+                        ])
+                        last_left, last_right, last_bottom, last_frame_num = (left, right, bottom, frame_num)
                         cv2.imwrite("../media/"+video_nbmr+"/foot_placement/"+str(frame_num)+".png", fgmask, [cv2.IMWRITE_PNG_COMPRESSION, 9])
                     cv2.imshow('cropped', crop_fgmask) # show mask video
 
@@ -211,11 +225,51 @@ def run(lowest_point=None, first_frame=None, last_frame=None, second_pass=False,
         print('x,y start: {},{} - x,y end: {},{}'.format(
             jump[3],jump[6],jump[1],jump[5]
         ))
-        frame_path = "../media/"+video_nbmr+"/stats/stats.jpg"
+        jump_speed = 8.8/((jump[7]-jump[8])/fps) #distance / (frames in between jumps / fps)
+        print('speed during jump (hardcoding 8.8 ft jump): {} ft/s'.format(
+            jump_speed
+        ))
+        frame_path = "../media/"+video_nbmr+"/stats/default.jpg"
+        cv2.imwrite(frame_path, stats_frame, [int(cv2.IMWRITE_JPEG_QUALITY), 90])
         stats_frame = cv2.circle(stats_frame, (jump[1],jump[5]), radius=5, color=(50, 168, 82), thickness=-1)
         stats_frame = cv2.circle(stats_frame, (jump[3],jump[6]), radius=5, color=(50, 60, 168), thickness=-1)
+        
+        # font 
+        font = cv2.FONT_HERSHEY_SIMPLEX 
+        # org 
+        org = (50, 50) 
+        # fontScale 
+        fontScale = 1
+        # Blue color in BGR 
+        color = (255, 0, 0) 
+        # Line thickness of 2 px 
+        thickness = 2
+        
+        frame_path = "../media/"+video_nbmr+"/stats/stats.jpg"
+        stats_frame = cv2.putText(
+            stats_frame,
+            'Jump speed: {} ft/second'.format(int(jump_speed)),
+            org, font,
+            fontScale,
+            color,
+            thickness,
+            cv2.LINE_AA
+        ) 
         cv2.imwrite(frame_path, stats_frame, [int(cv2.IMWRITE_JPEG_QUALITY), 90])
 
+        df = pd.DataFrame({
+            'x_left': data[:, 0],
+            'y_right': data[:, 1],
+            'distance(last_toe_to_current_heel)' : data[:, 2],
+            'last_x_left' : data[:, 3],
+            'last_x_right' : data[:, 4],
+            'y_bottom' : data[:, 5],
+            'last_y_bottom' : data[:, 6],
+            'frame' : data[:, 7],
+            'last_frame' : data[:, 8],
+        })
+        frame_path = "../media/"+video_nbmr+"/stats/stats.csv"
+        df.to_csv(frame_path, index = False)
 
 
     return lowest_point, first_frame, last_frame
