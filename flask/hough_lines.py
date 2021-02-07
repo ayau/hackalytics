@@ -45,8 +45,17 @@ def display_lines_and_step(img, jump_coords, land_coords):
         cv2.drawContours(output, [cntsSorted[-2]], -1, 255, cv2.FILLED)
         edges = cv2.bitwise_and(edges, output)
 
+    minLineLength = 60
+    maxLineGap = 15
+    lines = cv2.HoughLinesP(edges, 1, np.pi / 1800, 160, minLineLength, maxLineGap)
 
     backtorgb = cv2.cvtColor(edges, cv2.COLOR_GRAY2RGB)
+
+    if lines is not None:
+        for line in lines:
+            # print(line)
+            x1, y1, x2, y2 = line[0]
+            # cv2.line(backtorgb, (x1, y1), (x2, y2), (255, 0, 0, 255), 2)
 
     # Draw take off / landing
     cv2.circle(backtorgb, jump_coords, 5, (0, 255, 0), 5)
