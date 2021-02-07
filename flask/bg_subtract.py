@@ -173,7 +173,7 @@ def run(lowest_point=None, first_frame=None, last_frame=None, second_pass=False)
         ))
 
 
-    return int(lowest_point), first_frame, last_frame
+    return int(lowest_point), first_frame, last_frame, data
 
 
 # We can first identify people in the frame, then apply background segmentation within those bounds to avoid noise
@@ -228,5 +228,5 @@ def detectPersonBounds(image):
     return max_box
 
 
-lowest_point, first_frame, last_frame = run() #first pass
-run(lowest_point, first_frame, last_frame, True)
+lowest_point, first_frame, last_frame, data = run() #first pass
+_, _, _, data = run(lowest_point, first_frame, last_frame, True)
