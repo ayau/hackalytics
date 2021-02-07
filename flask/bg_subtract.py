@@ -80,7 +80,8 @@ def run(lowest_point=None, first_frame=None, last_frame=None, second_pass=False,
                 if(frame_num > last_frame):
                     break
             
-            frame_path = "../media/"+video_nbmr+"/video_frames/"+str(frame_num)+".jpg"
+            frame_id = f'{frame_num:05d}'
+            frame_path = "../media/"+video_nbmr+"/video_frames/"+frame_id+".jpg"
             cv2.imwrite(frame_path, frame, [int(cv2.IMWRITE_JPEG_QUALITY), jpg_quality])
 
 
@@ -158,8 +159,9 @@ def run(lowest_point=None, first_frame=None, last_frame=None, second_pass=False,
                 right = positions_x.max()
 
                 #save blob mask for static site
-                blobmask = cv2.rectangle(cv2.cvtColor(frame,cv2.COLOR_GRAY2RGB), (left, top), (right, bottom), (0,255,0), 1)
-                frame_path = "../media/"+video_nbmr+"/blob_placement/"+str(frame_num)+".png"
+                blobmask = cv2.rectangle(cv2.cvtColor(frame,cv2.COLOR_GRAY2RGB), (left, top), (right, bottom), (0,255,0), 3)
+                frame_id = f'{frame_num:05d}'
+                frame_path = "../media/"+video_nbmr+"/blob_placement/"+frame_id+".jpg"
                 cv2.imwrite(frame_path, blobmask, [int(cv2.IMWRITE_JPEG_QUALITY), jpg_quality])
 
                 #only look at bottom slice
@@ -174,14 +176,15 @@ def run(lowest_point=None, first_frame=None, last_frame=None, second_pass=False,
             right = positions_x.max()
 
             #foot placement frame store
-            frame_path = "../media/"+video_nbmr+"/foot_placement/"+str(frame_num)+".png"
-            cv2.imwrite(frame_path, fgmask, [cv2.IMWRITE_PNG_COMPRESSION, 9])
+            frame_id = f'{frame_num:05d}'
+            frame_path = "../media/"+video_nbmr+"/foot_placement/"+frame_id+".jpg"
+            cv2.imwrite(frame_path, fgmask, [int(cv2.IMWRITE_JPEG_QUALITY), jpg_quality])
 
             if (bottom > lowest_point): lowest_point = bottom
 
 
             fgmask = cv2.rectangle(cv2.cvtColor(fgmask, cv2.COLOR_GRAY2BGR)
-                , (left, lowest_point - crop_height), (right, lowest_point), (0,255,0), 1)
+                , (left, lowest_point - crop_height), (right, lowest_point), (0,255,0), 3)
 
 
 
@@ -203,7 +206,8 @@ def run(lowest_point=None, first_frame=None, last_frame=None, second_pass=False,
                             last_frame_num
                         ])
                         last_left, last_right, last_bottom, last_frame_num = (left, right, bottom, frame_num)
-                        cv2.imwrite("../media/"+video_nbmr+"/foot_placement/"+str(frame_num)+".png", fgmask, [cv2.IMWRITE_PNG_COMPRESSION, 9])
+                        frame_id = f'{frame_num:05d}'
+                        cv2.imwrite("../media/"+video_nbmr+"/foot_placement/"+frame_id+".jpg", fgmask, [int(cv2.IMWRITE_JPEG_QUALITY), jpg_quality])
                     cv2.imshow('cropped', crop_fgmask) # show mask video
 
         if not second_pass:
