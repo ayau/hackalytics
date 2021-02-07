@@ -42,7 +42,7 @@ let selectedVideoId = 1;
 let baseURL = ''; //https://www.hurdl.us';
 
 const originalVid = document.getElementById('original-video');
-const footPlacementVid = document.getElementById('foot-placement-vid');
+const $footPlacementContainer = $('#foot-placement-gif-container');
 const blobPlacementVid = document.getElementById('blob-placement-vid');
 const loadCards = () => {
     const currentSelectedVideoId = selectedVideoId;
@@ -52,8 +52,9 @@ const loadCards = () => {
     });
 
     let footPlacementVidPromise = new Promise((resolve, reject) => {
-        footPlacementVid.addEventListener('canplaythrough', () => resolve(() => footPlacementVid.play()));
-        footPlacementVid.src = `${baseURL}/static/media/${selectedVideoId}/foot_placement/video.mp4`;
+        const img = new Image();
+        img.addEventListener('load', () => resolve(() => $footPlacementContainer.html(img)));
+        img.src = `${baseURL}/static/media/${selectedVideoId}/foot_placement/video.gif`;
     });
 
     let blobPlacementVidPromise = new Promise((resolve, reject) => {
