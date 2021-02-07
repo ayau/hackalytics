@@ -54,7 +54,7 @@ const loadCards = () => {
         const img = new Image(cardImageSize);
         img.addEventListener('load', () => resolve(() => $originalVidContainer.html(img)));
         img.addEventListener('error', (err) => resolve(() => {}));
-        img.src = `${baseURL}/${selectedVideoId}/video_frames/${frameNumber}.jpg`;
+        img.src = `${baseURL}/media/${selectedVideoId}/video_frames/${frameNumber}.jpg`;
     });
 
     let footPlacementPromise = new Promise((resolve, reject) => {
