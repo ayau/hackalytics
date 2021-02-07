@@ -46,7 +46,7 @@ def run(lowest_point=None, first_frame=None, last_frame=None, second_pass=False,
 
     frame_num = 0
     data = []
-    last_left, last_right = (video_width, video_width) 
+    last_left, last_right, last_bottom = (video_width, video_width, 0) 
     while True:
 
         frame_num += 1
@@ -60,8 +60,8 @@ def run(lowest_point=None, first_frame=None, last_frame=None, second_pass=False,
         #second pass, slice video
         if(second_pass):
             if(frame_num==30):
-                frame_path = "../media/"+video_nbmr+"/stats/stats.jpg"
-                cv2.imwrite(frame_path, frame, [int(cv2.IMWRITE_JPEG_QUALITY), 90])
+                stats_frame = frame.copy()
+
 
             if(first_frame):
                 if(frame_num < first_frame):
@@ -182,8 +182,8 @@ def run(lowest_point=None, first_frame=None, last_frame=None, second_pass=False,
                 if(crop_fgmask.size>0):
                     if( (lowest_point-bottom)< crop_height and (right-left) > foot_width ):
                         # assume runner is coming from the right side (ccw running, filming from inside the track)
-                        data.append([left, right, abs(last_left-right), last_left, last_right, bottom, frame_num])
-                        last_left, last_right = (left, right)
+                        data.append([left, right, abs(last_left-right), last_left, last_right, bottom, last_bottom, frame_num])
+                        last_left, last_right, last_bottom = (left, right, bottom)
                         cv2.imwrite("../media/"+video_nbmr+"/foot_placement/"+str(frame_num)+".png", fgmask, [cv2.IMWRITE_PNG_COMPRESSION, 9])
                     cv2.imshow('cropped', crop_fgmask) # show mask video
 
@@ -208,6 +208,13 @@ def run(lowest_point=None, first_frame=None, last_frame=None, second_pass=False,
         print("jump occurred between pixels {} and  {} with a distance of approx {} pixels".format(
             jump[3], jump[1], jump[2]
         ))
+        print('x,y start: {},{} - x,y end: {},{}'.format(
+            jump[3],jump[6],jump[1],jump[5]
+        ))
+        frame_path = "../media/"+video_nbmr+"/stats/stats.jpg"
+        stats_frame = cv2.circle(stats_frame, (jump[1],jump[5]), radius=5, color=(50, 168, 82), thickness=-1)
+        stats_frame = cv2.circle(stats_frame, (jump[3],jump[6]), radius=5, color=(50, 60, 168), thickness=-1)
+        cv2.imwrite(frame_path, stats_frame, [int(cv2.IMWRITE_JPEG_QUALITY), 90])
 
 
 
