@@ -11,7 +11,8 @@ only_display_largest_blob = False # only draw the largest blob to reduce noise
 remove_noise = True # remove small blobs and plug some small holes
 skip_frames = 1  # how many frames to process. setting to 3 will process one every 3 frames
 use_cnt_model = False # Faster but less accurate
-crop_height = 100 #the height of the crop up from feet
+crop_height = 10 #the height of the crop up from feet
+
 
 # use person detection to help narrow down search space
 # To enable this, first download the yolov3.weights and yolov3.cfg from https://medium.com/@luanaebio/detecting-people-with-yolo-and-opencv-5c1f9bc6a810
@@ -28,6 +29,8 @@ def run(lowest_point=None, first_frame=None, last_frame=None, second_pass=False)
         fgbg = cv2.bgsegm.createBackgroundSubtractorMOG()
 
     frame_num = 0
+    data = []
+    last_left, last_right, last_bottom = (0, 0, 0)
     while True:
 
         frame_num += 1
@@ -46,10 +49,6 @@ def run(lowest_point=None, first_frame=None, last_frame=None, second_pass=False)
             if(last_frame):
                 if(frame_num > last_frame):
                     break
-
-
-        
-        
 
         # Uncomment if you want to skip some frames. Maybe we can use binary search to find the launch frame
 
@@ -108,6 +107,7 @@ def run(lowest_point=None, first_frame=None, last_frame=None, second_pass=False)
         # looks for non zero items on the mask
         positions = np.nonzero(fgmask)
         if(len(positions[0])>0):
+
             #tracks first and last frame with something on the mask
             if(first_frame is None):
                 first_frame = frame_num
@@ -130,6 +130,10 @@ def run(lowest_point=None, first_frame=None, last_frame=None, second_pass=False)
             if(second_pass):
                 crop_fgmask = fgmask[lowest_point-crop_height:lowest_point, :]
                 if(crop_fgmask.size>0):
+                    if( (lowest_point-bottom)< crop_height):
+                        # assume runner is coming from the right side (ccw running, filming from inside the track)
+                        data.append([left, abs(left-last_left), last_left])
+                        last_left, last_right, last_bottom = (left, right, bottom)
                     cv2.imshow('cropped', crop_fgmask) # show mask video
 
         if not second_pass:
@@ -144,9 +148,15 @@ def run(lowest_point=None, first_frame=None, last_frame=None, second_pass=False)
     cap.release()
     cv2.destroyAllWindows()
 
-    print(lowest_point)
-    print(first_frame)
-    print(last_frame)
+    if len(data)>0 :
+        data.pop(0) #discard first value
+        data = np.array(data)
+        print(data)
+        jump = data[ np.argmax(data[:,2]) ] #find max delta between x values at bottom of slice
+        print("jump occurred between pixels {} and  {} with a distance of approx {} pixels".format(
+            jump[2], jump[0], jump[1]
+        ))
+
 
     return int(lowest_point), first_frame, last_frame
 

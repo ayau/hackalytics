@@ -1,4 +1,5 @@
 # Add pose library path
+import os
 import os.path as osp
 import sys
 this_dir = osp.dirname(__file__)
@@ -8,17 +9,36 @@ if lib_path not in sys.path:
     sys.path.insert(0, lib_path)
 
 # Rest of the imports
-from flask import Flask, Response
+from flask import Flask, request, Response, session
+from flask_session import Session
 import cv2
 from pose_model import PoseModel
 from utils.debugger import show_2d, mpii_edges
 import time
 
 app = Flask(__name__, static_url_path="/static")
+SESSION_TYPE = 'filesystem'
+app.config.from_object(__name__)
+Session(app)
+
+# state for uploading a video
+uploads_dir = os.path.join(this_dir, 'video_uploads')
 
 @app.route('/')
 def static_file():
     return app.send_static_file('index.html')
+
+@app.route('/upload_video', methods=['POST'])
+def process_video():
+    vid_obj =request.files['file']
+    vid_obj.save(os.path.join(uploads_dir, vid_obj.filename))
+    session['video_name'] = vid_obj.filename
+    return ''
+
+@app.route('/fetch_video_stats')
+def fetch_video_stats():
+    video_path = os.path.join(uploads_dir, session.get('video_name'))
+    return ''
 
 @app.route('/video_feed')
 def video_feed():
