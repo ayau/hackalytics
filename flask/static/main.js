@@ -68,6 +68,13 @@ const loadCards = () => {
     $('#stat-speed').text(stat.speed ? stat.speed + ' ft/s' : '-');
     $('#stat-jump-margin').text(stat.jumpMargin ? (stat.jumpMargin > 0 ? stat.jumpMargin + '" before line' : (-1 * stat.jumpMargin) + '" after line') : '-');
     $('#stat-land-margin').text(stat.landMargin ? (stat.landMargin > 0 ? stat.landMargin + '" before line' : (-1 * stat.landMargin) + '" after line') : '-');
+    if (selectedVideoId <= 3) {
+        $('#line-detection').attr('src', '/static/lines' + selectedVideoId + '.png');
+        $('#line-detection').show();
+    } else {
+        $('#line-detection').hide();
+    }
+
 
     Promise.all([originalVideoPromise, footPlacementVidPromise, blobPlacementVidPromise]).then(cbs => {
         cbs.forEach(cb => cb());
